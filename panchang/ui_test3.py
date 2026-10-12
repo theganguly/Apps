@@ -1,0 +1,118 @@
+"""Browser smoke test for the new features. Run: python3 test/ui_test3.py  (needs playwright + chromium)."""
+import asyncio, os, sys
+from playwright.async_api import async_playwright
+HTML = 'file://' + os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'dist', 'panchang.html'))
+OUT = os.environ.get('SHOTS', '/tmp/shots')
+fails = []
+def check(name, cond, extra=''):
+    print(('  ok  ' if cond else 'FAIL  ') + name, extra if not cond else '')
+    if not cond: fails.append(name)
+
+async def no_junk(pg, where):
+    txt = await pg.evaluate("document.body.innerText")
+    check(f'no stray [object …]/null text ({where})', '[object' not in txt and '\nnull\n' not in ('\n' + txt + '\n') and 'undefined' not in txt)
+
+async def main():
+    async with async_playwright() as p:
+        b = await p.chromium.launch()
+        pg = await b.new_page(viewport={'width': 400, 'height': 860})
+        errs, reqs = [], []
+        pg.on('console', lambda m: errs.append(m.text) if m.type == 'error' else None)
+        pg.on('pageerror', lambda e: errs.append('PAGEERR ' + str(e)))
+        pg.on('request', lambda r: reqs.append(r.url) if not r.url.startswith(('file:', 'data:', 'blob:')) else None)
+        await pg.goto(HTML); await pg.wait_for_selector('main')
+        # --- bottom nav scrolls
+        info = await pg.evaluate("(()=>{const s=document.querySelector('.botnav-grid');return {sw:s.scrollWidth,cw:s.clientWidth,n:s.children.length,label:s.getAttribute('aria-label'),ov:getComputedStyle(s).overflowX,disp:getComputedStyle(s).display}})()")
+        check('8 tabs in bottom nav', info['n'] == 8, str(info))
+        check('bottom nav is a horizontal scroller', info['ov'] == 'auto' and info['disp'] == 'flex' and info['sw'] > info['cw'], str(info))
+        check('bottom nav has aria-label', bool(info['label']))
+        h = await pg.evaluate("[...document.querySelectorAll('.botnav button')].every(b=>b.getBoundingClientRect().height>=44)")
+        check('tap targets >= 44px', h)
+        await pg.screenshot(path=f'{OUT}/today.png', full_page=False)
+        # --- glossary term opens sheet, Esc closes
+        await pg.locator('.row .l .term').first.click()
+        await pg.wait_for_selector('.sheet')
+        check('glossary sheet opens', await pg.locator('.sheet h3').count() >= 3)
+        await no_junk(pg, 'glossary')
+        await pg.screenshot(path=f'{OUT}/glossary.png')
+        await pg.keyboard.press('Escape')
+        check('Esc closes sheet', await pg.locator('.sheet').count() == 0)
+        # keyboard open
+        await pg.locator('.row .l .term').nth(1).focus(); await pg.keyboard.press('Enter')
+        check('Enter opens sheet', await pg.locator('.sheet').count() == 1)
+        # related link navigation + back
+        await pg.locator('.chip.rel').first.click()
+        check('related link navigates', await pg.locator('.sheet-hd button[aria-label]').count() >= 2)
+        await pg.keyboard.press('Escape')
+        # --- cross-midnight date shown in Today (Panchak day)
+        await pg.evaluate("window.__panchang.go({date:{y:2024,m:11,d:9}})"); await pg.wait_for_timeout(200)
+        txt = await pg.inner_text('main')
+        check('Panchak row shown on its start day with end date 14-11', ('14-11' in txt) or ('૧૪-૧૧' in txt), '')
+        await pg.screenshot(path=f'{OUT}/today-panchak.png', full_page=True)
+        # --- place picker
+        await pg.locator('.btn-place').click(); await pg.wait_for_selector('.sheet .mapsvg')
+        await no_junk(pg, 'place picker')
+        check('place list renders rows', await pg.locator('.prow').count() > 5)
+        await pg.screenshot(path=f'{OUT}/place.png')
+        # tap map in Gujarat view
+        await pg.locator('.seg button').nth(1).click()
+        box = await pg.locator('.mapsvg').bounding_box()
+        await pg.mouse.click(box['x'] + box['width'] * 0.5, box['y'] + box['height'] * 0.5)
+        lat = await pg.locator('input[type=number]').first.input_value()
+        check('map click fills latitude', lat != '' and 19 < float(lat) < 26, lat)
+        await pg.locator('input[type=text]').fill('Mera Gaam')
+        await pg.get_by_role('button', name='ખીંચો').count()
+        await pg.locator('.sheet .castbtn').click()
+        check('sheet closes after save', await pg.locator('.sheet').count() == 0)
+        hdr = await pg.inner_text('.btn-place')
+        check('header shows saved place', 'Mera Gaam' in hdr, hdr)
+        stored = await pg.evaluate("localStorage.getItem('panchang-places-v1')")
+        check('place persisted', stored and 'Mera Gaam' in stored)
+        # invalid coords rejected
+        await pg.locator('.btn-place').click(); await pg.wait_for_selector('.sheet')
+        await pg.locator('input[type=number]').first.fill('95'); await pg.locator('input[type=text]').fill('Bad')
+        await pg.locator('.sheet .castbtn').click()
+        check('invalid lat rejected', await pg.locator('.sheet').count() == 1 and await pg.locator('.formmsg.bad-t').count() == 1)
+        await pg.keyboard.press('Escape')
+        # --- planner tab
+        await pg.evaluate("window.__panchang.setTab('muhurtaPlanner')"); await pg.wait_for_timeout(600)
+        check('planner has rows', await pg.locator('.mrow').count() > 0)
+        await no_junk(pg, 'planner')
+        await pg.screenshot(path=f'{OUT}/planner.png', full_page=False)
+        await pg.locator('.mrow .mmain').first.click(); await pg.wait_for_selector('.sheet')
+        check('muhurta sheet shows reasons', await pg.locator('.sheet ul.why li').count() >= 2)
+        await pg.keyboard.press('Escape')
+        await pg.locator('.mrow .navbtn').first.click()
+        plan = await pg.evaluate("localStorage.getItem('panchang-plan-v1')")
+        check('add to plan persists', plan and len(plan) > 5)
+        await pg.get_by_text('આખું સંવત્સર').click(); await pg.wait_for_timeout(1500)
+        check('whole samvatsar renders', await pg.locator('.mrow').count() > 20)
+        # --- samvat tab
+        await pg.evaluate("window.__panchang.setTab('samvat')"); await pg.wait_for_timeout(1500)
+        t = await pg.inner_text('main')
+        check('samvat lists panchak blocks', await pg.locator('.samvat-view .sk').count() > 30)
+        await no_junk(pg, 'samvat')
+        await pg.screenshot(path=f'{OUT}/samvat.png', full_page=True)
+        # --- settings: hide a tab, plugin
+        await pg.locator('button[aria-label="સેટિંગ્સ"]').click(); await pg.wait_for_selector('.tablist')
+        await no_junk(pg, 'settings')
+        await pg.screenshot(path=f'{OUT}/settings.png')
+        await pg.locator('.trow input').nth(1).uncheck()
+        await pg.keyboard.press('Escape')
+        check('hidden tab removed from nav', await pg.locator('.botnav button').count() == 7)
+        await pg.evaluate("window.__panchang.registerPlugin({key:'hello',strGu:'નમસ્તે',strEn:'Hello',icon:'star',mount(el,ctx){el.textContent='plugin-ok-'+ctx.state.lang}})")
+        await pg.evaluate("window.__panchang.setTab('hello')"); await pg.wait_for_timeout(200)
+        check('plugin tab mounts', 'plugin-ok-gu' in await pg.inner_text('main'))
+        check('plugin tab in nav', await pg.locator('.botnav button').count() == 8)
+        await pg.evaluate("window.__panchang.registry.unregisterTab('hello')"); await pg.wait_for_timeout(100)
+        check('plugin unregistered', await pg.locator('.botnav button').count() == 7)
+        # --- desktop viewport & English
+        await pg.set_viewport_size({'width': 1100, 'height': 800})
+        await pg.evaluate("window.__panchang.registry.resetTabs(); window.__panchang.setTab('today')")
+        await pg.locator('.btn-lang').click(); await pg.wait_for_timeout(200)
+        await pg.screenshot(path=f'{OUT}/desktop-en.png', full_page=False)
+        check('no console errors', not errs, str(errs))
+        check('no external requests', not reqs, str(reqs))
+        await b.close()
+    print('FAILURES:', fails or 'none'); sys.exit(1 if fails else 0)
+asyncio.run(main())
