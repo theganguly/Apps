@@ -1,96 +1,372 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PaperStack — Scan & PDF</title>
+<title>scanKit – scan documents to PDF</title>
 <style>
-:root{--bg:#f4f6fb;--panel:#fff;--ink:#182230;--muted:#697586;--line:#e2e7ef;--brand:#3659d9;--brand2:#eaf0ff;--good:#13845b;--shadow:0 10px 32px #1822300b}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-header{background:#fff;border-bottom:1px solid var(--line);padding:17px clamp(16px,4vw,48px);display:flex;align-items:center;justify-content:space-between;gap:16px;position:sticky;top:0;z-index:5}
-.brand{display:flex;align-items:center;gap:11px;font-size:21px;font-weight:800;letter-spacing:-.6px}.logo{background:var(--brand);color:white;border-radius:12px;width:40px;height:40px;display:grid;place-items:center;font-size:22px}.subbrand{font-size:12px;color:var(--muted);font-weight:500;letter-spacing:0}
-main{max-width:1120px;margin:28px auto;padding:0 18px 55px}.intro{display:flex;justify-content:space-between;align-items:end;gap:18px;margin-bottom:22px}.intro h1{font-size:clamp(25px,4vw,34px);letter-spacing:-1px;margin:0 0 5px}.intro p{color:var(--muted);margin:0}.privacy{font-size:12px;color:var(--good);background:#e8f7f0;border-radius:30px;padding:7px 11px;white-space:nowrap}
-.layout{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(300px,.75fr);gap:20px;align-items:start}.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:22px}.panel h2{font-size:18px;margin:0 0 4px}.hint{font-size:13px;color:var(--muted);margin:0 0 18px}
-label{display:block;font-size:13px;font-weight:700;margin:14px 0 7px}input[type=text],select{width:100%;border:1px solid #d9e0eb;border-radius:10px;padding:11px 12px;font:inherit;background:white;color:var(--ink)}input:focus,select:focus{outline:3px solid #dce5ff;border-color:var(--brand)}
-.btn{border:0;border-radius:10px;padding:11px 15px;font:700 14px system-ui;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:.15s}.btn:active{transform:translateY(1px)}.primary{background:var(--brand);color:#fff}.secondary{background:var(--brand2);color:#2645b8}.outline{background:white;border:1px solid var(--line);color:var(--ink)}.danger{background:#fff0f0;color:#b42318}.btn:disabled{opacity:.45;cursor:not-allowed}
-.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}.uploadbox{border:1.5px dashed #c8d2e5;border-radius:14px;padding:19px;text-align:center;background:#fafbff}.uploadbox .big{font-size:28px}.uploadbox p{font-size:13px;color:var(--muted);margin:5px 0 12px}.fileinput{display:none}
-.camera-wrap{margin-top:15px;border-radius:13px;overflow:hidden;background:#111;display:none;position:relative}.camera-wrap video{width:100%;max-height:440px;display:block;object-fit:contain}.camera-controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.pages-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:22px 0 12px}.pages-head h3{font-size:15px;margin:0}.count{font-size:12px;color:var(--muted);background:#f0f2f7;border-radius:20px;padding:5px 9px}
-.pages{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:12px}.empty{border:1px dashed var(--line);border-radius:12px;padding:27px 12px;text-align:center;color:var(--muted);font-size:13px;grid-column:1/-1}.page{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;position:relative}.page img{width:100%;height:170px;object-fit:contain;background:#f0f2f5;display:block}.page-foot{padding:9px}.page-title{font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:8px}.page-actions{display:flex;gap:5px}.page-actions button{flex:1;padding:6px 2px;font-size:12px;border-radius:7px}.page-num{position:absolute;top:7px;left:7px;background:#172033db;color:white;border-radius:7px;padding:3px 7px;font-size:11px}
-.settings{display:grid;grid-template-columns:1fr 1fr;gap:12px}.settings label{margin-top:14px}.checkline{display:flex;gap:9px;align-items:center;font-size:13px;color:var(--muted);margin-top:14px}.checkline input{width:16px;height:16px;accent-color:var(--brand)}.rightcol{display:grid;gap:20px}.summary{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px}.summary:last-of-type{border-bottom:0}.summary span{color:var(--muted)}.generate{width:100%;margin-top:17px;padding:14px}.note{font-size:12px;color:var(--muted);margin-top:12px}.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#182230;color:#fff;padding:12px 18px;border-radius:10px;box-shadow:var(--shadow);z-index:10;display:none;max-width:90vw;font-size:14px}
-footer{text-align:center;font-size:12px;color:var(--muted);margin-top:24px}
-@media(max-width:760px){.layout{grid-template-columns:1fr}.intro{align-items:start;flex-direction:column}.privacy{white-space:normal}.panel{padding:17px}header{padding:12px 16px}.pages{grid-template-columns:repeat(auto-fill,minmax(125px,1fr))}}
+  :root{
+    --bg:#e9eef3; --card:#ffffff; --ink:#18232f; --muted:#64748b; --line:#dbe3ea;
+    --accent:#1f6feb; --accent-ink:#fff; --ok:#16a34a; --warn:#d97706; --bad:#dc2626;
+    --shadow:0 1px 2px rgba(24,35,47,.06),0 8px 24px rgba(24,35,47,.08);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{--bg:#0e141b;--card:#17202a;--ink:#e6edf3;--muted:#94a3b8;--line:#263341;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35)}
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  header{max-width:1180px;margin:0 auto;padding:22px 20px 6px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+  h1{margin:0;font-size:26px;letter-spacing:-.02em}
+  header p{margin:0;color:var(--muted)}
+  main{max-width:1180px;margin:0 auto;padding:14px 20px 40px;display:grid;gap:18px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media (max-width:820px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border-radius:20px;box-shadow:var(--shadow);padding:16px;min-width:0}
+  .card h2{margin:0;font-size:16px}
+  .head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+  .badge{display:inline-block;padding:3px 11px;border-radius:99px;font-size:13px;font-weight:600;background:var(--line);color:var(--muted)}
+  .badge.ok{background:#16a34a22;color:var(--ok)} .badge.warn{background:#d9770622;color:var(--warn)} .badge.bad{background:#dc262622;color:var(--bad)} .badge.blue{background:#1f6feb22;color:var(--accent)}
+  .stage{position:relative;aspect-ratio:4/3;border-radius:14px;overflow:hidden;background:#0b1118;display:grid;place-items:center}
+  .stage canvas{max-width:100%;max-height:100%;display:block}
+  .placeholder{position:absolute;inset:0;display:grid;place-content:center;text-align:center;padding:24px;color:#9fb0c0;gap:6px}
+  .placeholder b{color:#e6edf3;font-size:16px}
+  .hidden{display:none!important}
+  .controls{display:grid;gap:12px;margin-top:14px}
+  .row{display:grid;grid-template-columns:150px 1fr 56px;align-items:center;gap:10px;font-size:14px}
+  .row output{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  .btns{display:flex;gap:10px;flex-wrap:wrap}
+  button{font:inherit;font-weight:600;border:0;border-radius:12px;padding:10px 16px;cursor:pointer;background:var(--line);color:var(--ink);transition:transform .08s}
+  button:active{transform:scale(.97)}
+  button.primary{background:var(--accent);color:var(--accent-ink)}
+  button.danger{background:#dc262620;color:var(--bad)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+  .pages{display:flex;gap:12px;overflow-x:auto;padding:4px 2px 10px;min-height:150px}
+  .empty{color:var(--muted);align-self:center;padding:0 8px}
+  .thumb{flex:0 0 auto;width:112px;display:grid;gap:6px}
+  .thumb img{width:112px;height:140px;object-fit:cover;border-radius:10px;border:1px solid var(--line);background:#fff}
+  .thumb .meta{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+  .thumb .acts{display:flex;gap:4px}
+  .thumb .acts button{padding:3px 0;flex:1;font-size:13px;border-radius:8px}
+  dialog{border:0;border-radius:20px;padding:22px;box-shadow:var(--shadow);background:var(--card);color:var(--ink);width:min(420px,92vw)}
+  dialog::backdrop{background:rgba(10,15,20,.55)}
+  dialog input[type=text]{width:100%;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;margin:12px 0 16px}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:99px;font-weight:600;box-shadow:var(--shadow)}
+  @media (prefers-reduced-motion:reduce){button{transition:none}}
 </style>
 </head>
 <body>
-<header><div class="brand"><div class="logo">▤</div><div>PaperStack<div class="subbrand">Scan documents · Build PDFs</div></div></div><button class="btn outline" id="newBatchTop">＋ New batch</button></header>
+<header>
+  <h1>scanKit</h1>
+  <p>Open the camera, scan page after page, then save them as one PDF.</p>
+</header>
+
 <main>
- <div class="intro"><div><h1>Your documents, one PDF at a time.</h1><p>Scan pages in order, split them into batches, then export clean PDFs.</p></div><div class="privacy">● Files stay on your device</div></div>
- <div class="layout">
-  <section class="panel">
-   <h2>01 · Add pages</h2><p class="hint">Use your camera, or select scanned photos and documents from your device.</p>
-   <div class="uploadbox"><div class="big">▧</div><strong>Add images or existing PDFs</strong><p>Choose multiple files. Images become pages; PDFs are added page by page.</p><label for="filePicker" class="btn secondary">Choose files</label><input id="filePicker" class="fileinput" type="file" accept="image/*,application/pdf" multiple capture="environment"></div>
-   <div class="actions"><button class="btn primary" id="startCamera">▣ Open camera</button><button class="btn outline" id="stopCamera" hidden>Close camera</button></div>
-   <div class="camera-wrap" id="cameraWrap"><video id="video" autoplay playsinline></video></div>
-   <div class="camera-controls" id="cameraControls" hidden><button class="btn primary" id="capture">● Capture page</button><button class="btn outline" id="flipCamera">↻ Switch camera</button></div>
-   <div class="pages-head"><h3>Pages in this batch</h3><span class="count" id="pageCount">0 pages</span></div>
-   <div class="pages" id="pages"><div class="empty">No pages yet. Capture a page or choose files to begin.</div></div>
-   <div class="actions"><button class="btn outline" id="addFiles">＋ Add more pages</button><button class="btn outline" id="clearBatch">Clear batch</button></div>
+  <div class="grid">
+    <!-- LEFT: live camera + edge detection -->
+    <section class="card" aria-label="Camera">
+      <div class="head">
+        <h2>Camera</h2>
+        <span id="detBadge" class="badge">Camera off</span>
+      </div>
+      <div class="stage">
+        <canvas id="live"></canvas>
+        <div id="livePh" class="placeholder"><b>Camera is off</b><span>Press “Start camera”, then hold a bright page against a darker surface.</span></div>
+      </div>
+      <div class="controls">
+        <div class="row"><label for="thr">Edge sensitivity</label><input id="thr" type="range" min="60" max="230" value="140"><output id="thrV">140</output></div>
+        <div class="row"><label for="q">JPEG quality</label><input id="q" type="range" min="20" max="95" value="70"><output id="qV">0.70</output></div>
+        <div class="btns">
+          <button id="camBtn" class="primary">Start camera</button>
+          <button id="capBtn" disabled>Capture &amp; add page</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: cropped, compressed result -->
+    <section class="card" aria-label="Cropped result">
+      <div class="head">
+        <h2>Cropped page</h2>
+        <span id="sizeBadge" class="badge">— KB</span>
+      </div>
+      <div class="stage">
+        <canvas id="out"></canvas>
+        <div id="outPh" class="placeholder"><b>No page yet</b><span>The cropped, compressed page appears here as soon as a document is detected.</span></div>
+      </div>
+      <p id="hint" style="color:var(--muted);margin:12px 0 0;font-size:14px">Tip: if the page isn’t found, lower the sensitivity for dim light or raise it for a bright background.</p>
+    </section>
+  </div>
+
+  <!-- Page tray + PDF -->
+  <section class="card" aria-label="Scanned pages">
+    <div class="head">
+      <h2>Scanned pages <span id="countBadge" class="badge blue">0 pages</span> <span id="totalBadge" class="badge">0 KB</span></h2>
+      <div class="btns">
+        <button id="clearBtn" class="danger" disabled>Clear all</button>
+        <button id="pdfBtn" class="primary" disabled>Create PDF</button>
+      </div>
+    </div>
+    <div id="pages" class="pages"><span class="empty">Captured pages are listed here. Scan as many as you need.</span></div>
   </section>
-  <aside class="rightcol">
-   <section class="panel"><h2>02 · PDF settings</h2><p class="hint">Choose a name and page layout for this batch.</p>
-    <label for="pdfName">PDF file name</label><input id="pdfName" type="text" value="Scanned-Documents" maxlength="90">
-    <div class="settings"><div><label for="paper">Paper size</label><select id="paper"><option value="a4">A4</option><option value="letter">US Letter</option><option value="original">Fit to page</option></select></div><div><label for="orientation">Orientation</label><select id="orientation"><option value="auto">Auto</option><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select></div></div>
-    <label for="quality">Image quality</label><select id="quality"><option value="high">High quality</option><option value="balanced" selected>Balanced</option><option value="small">Smaller file</option></select>
-    <label class="checkline"><input type="checkbox" id="grayscale"> Convert pages to grayscale</label>
-    <label class="checkline"><input type="checkbox" id="margins" checked> Add small white margins</label>
-    <button class="btn primary generate" id="exportPdf">↓ Create & download PDF</button><p class="note">Each page stays in the order shown. PDFs are generated in your browser; nothing is uploaded.</p>
-   </section>
-   <section class="panel"><h2>03 · Batch overview</h2><p class="hint">Finish one group, download it, then start the next.</p>
-    <div class="summary"><span>Pages ready</span><strong id="sumPages">0</strong></div><div class="summary"><span>Exported in this session</span><strong id="sumExports">0 PDFs</strong></div>
-    <button class="btn secondary" id="newBatch">Start a new batch →</button>
-    <p class="note">Starting a new batch clears the current page list, not PDFs already downloaded. Download your current batch before clearing it.</p>
-   </section>
-  </aside>
- </div>
- <footer>PaperStack runs locally in your browser. Camera access requires HTTPS or localhost.</footer>
-</main><div class="toast" id="toast" role="status"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</main>
+
+<dialog id="nameDlg">
+  <form method="dialog" id="nameForm">
+    <h2 style="margin:0">Name your PDF</h2>
+    <input id="nameIn" type="text" placeholder="e.g. rent-agreement" autocomplete="off" required>
+    <div class="btns" style="justify-content:flex-end">
+      <button type="button" id="nameCancel">Cancel</button>
+      <button type="submit" class="primary">Save PDF</button>
+    </div>
+  </form>
+</dialog>
+
 <script>
 (() => {
- const $=id=>document.getElementById(id);
- const pagesEl=$('pages'); let pages=[],stream=null,facing='environment',exports=0,toastTimer;
- if(window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
- function toast(msg){$('toast').textContent=msg;$('toast').style.display='block';clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').style.display='none',3200)}
- function safeName(s){return (s.trim().replace(/[<>:"/\\\\|?*\\x00-\\x1F]/g,'-').replace(/\\s+/g,'-').slice(0,90)||'Scanned-Documents')}
- function update(){ $('pageCount').textContent=pages.length+' '+(pages.length===1?'page':'pages');$('sumPages').textContent=pages.length;$('sumExports').textContent=exports+' '+(exports===1?'PDF':'PDFs');$('exportPdf').disabled=!pages.length; renderPages(); }
- function renderPages(){pagesEl.innerHTML='';if(!pages.length){pagesEl.innerHTML='<div class="empty">No pages yet. Capture a page or choose files to begin.</div>';return}
-  pages.forEach((p,i)=>{const card=document.createElement('div');card.className='page';const img=document.createElement('img');img.src=p.url;img.alt='Page '+(i+1);const num=document.createElement('span');num.className='page-num';num.textContent='Page '+(i+1);const foot=document.createElement('div');foot.className='page-foot';const title=document.createElement('div');title.className='page-title';title.title=p.name;title.textContent=p.name;const acts=document.createElement('div');acts.className='page-actions';const up=document.createElement('button');up.className='btn outline';up.textContent='↑';up.title='Move page up';up.disabled=i===0;up.onclick=()=>move(i,-1);const down=document.createElement('button');down.className='btn outline';down.textContent='↓';down.title='Move page down';down.disabled=i===pages.length-1;down.onclick=()=>move(i,1);const del=document.createElement('button');del.className='btn danger';del.textContent='×';del.title='Remove page';del.onclick=()=>removePage(i);acts.append(up,down,del);foot.append(title,acts);card.append(img,num,foot);pagesEl.append(card)})
- }
- function move(i,dir){[pages[i],pages[i+dir]]=[pages[i+dir],pages[i]];update()}
- function removePage(i){URL.revokeObjectURL(pages[i].url);pages.splice(i,1);update()}
- function clearPages(){pages.forEach(p=>URL.revokeObjectURL(p.url));pages=[];update()}
- async function addFiles(files){const list=[...files];for(const file of list){try{
-   if(file.type==='application/pdf'||file.name.toLowerCase().endsWith('.pdf')){if(!window.pdfjsLib)throw Error('PDF reader library did not load. Check your internet connection and reload.');const data=new Uint8Array(await file.arrayBuffer());const doc=await pdfjsLib.getDocument({data}).promise;for(let n=1;n<=doc.numPages;n++){const page=await doc.getPage(n);const viewport=page.getViewport({scale:1.7});const canvas=document.createElement('canvas');canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.92));pages.push({blob,url:URL.createObjectURL(blob),name:file.name+' · '+n});canvas.width=canvas.height=1;page.cleanup()}doc.destroy()
-   }else if(file.type.startsWith('image/')){const blob=file;const url=URL.createObjectURL(blob);const dims=await imageDimensions(url);pages.push({blob,url,name:file.name||'Scanned page'});if(!dims)throw Error('Could not read '+file.name)}
-   else toast('Skipped unsupported file: '+file.name);
-  }catch(e){toast('Could not add '+file.name+': '+e.message)}}update();if(list.length)toast('Added files to this batch')}
- function imageDimensions(url){return new Promise(resolve=>{const img=new Image();img.onload=()=>resolve([img.naturalWidth,img.naturalHeight]);img.onerror=()=>resolve(null);img.src=url})}
- $('filePicker').addEventListener('change',e=>{addFiles(e.target.files);e.target.value=''});$('addFiles').onclick=()=>$('filePicker').click();
- async function stopCamera(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}$('video').srcObject=null;$('cameraWrap').style.display='none';$('cameraControls').hidden=true;$('stopCamera').hidden=true;$('startCamera').hidden=false}
- $('startCamera').onclick=async()=>{try{if(!navigator.mediaDevices?.getUserMedia)throw Error('Camera is not available. Open this page on HTTPS or localhost, or upload images instead.');stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:facing},audio:false});$('video').srcObject=stream;$('cameraWrap').style.display='block';$('cameraControls').hidden=false;$('stopCamera').hidden=false;$('startCamera').hidden=true}catch(e){toast(e.message||'Camera permission was denied. You can upload photos instead.')}};
- $('stopCamera').onclick=stopCamera;
- $('flipCamera').onclick=async()=>{facing=facing==='environment'?'user':'environment';await stopCamera();$('startCamera').click()};
- $('capture').onclick=async()=>{const v=$('video');if(!v.videoWidth){toast('Camera is starting. Try again in a moment.');return}const c=document.createElement('canvas');c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d').drawImage(v,0,0);const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.94));pages.push({blob,url:URL.createObjectURL(blob),name:'Camera scan '+(pages.length+1)});update();toast('Page captured')};
- $('clearBatch').onclick=()=>{if(!pages.length)return;if(confirm('Remove all pages in this batch? Downloaded PDFs will not be affected.'))clearPages()};
- function startNewBatch(){if(pages.length&&!confirm('Start a new batch and clear the current pages? Download the current PDF first if needed.'))return;clearPages();$('pdfName').value='Scanned-Documents';stopCamera();window.scrollTo({top:0,behavior:'smooth'});toast('New batch ready')}
- $('newBatch').onclick=startNewBatch;$('newBatchTop').onclick=startNewBatch;
- function canvasBlob(canvas,type,quality){return new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('Could not process an image')),type,quality))}
- async function processImage(p){const img=new Image();img.src=p.url;await new Promise((res,rej)=>{img.onload=res;img.onerror=()=>rej(Error('Could not load '+p.name))});const c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0);if($('grayscale').checked){const d=ctx.getImageData(0,0,c.width,c.height);for(let i=0;i<d.data.length;i+=4){const y=.299*d.data[i]+.587*d.data[i+1]+.114*d.data[i+2];d.data[i]=d.data[i+1]=d.data[i+2]=y}ctx.putImageData(d,0,0)}
-  const q=$('quality').value;let mime=q==='high'?'image/jpeg':'image/jpeg';const quality=q==='high'?.95:q==='balanced'?.82:.62;const blob=await canvasBlob(c,mime,quality);c.width=c.height=1;return {bytes:new Uint8Array(await blob.arrayBuffer()),w:img.naturalWidth,h:img.naturalHeight}}
- $('exportPdf').onclick=async()=>{if(!pages.length)return;if(!window.PDFLib){toast('PDF library did not load. Check your internet connection and reload.');return}const btn=$('exportPdf');btn.disabled=true;btn.textContent='Building PDF…';try{const {PDFDocument}=PDFLib;const pdf=await PDFDocument.create();for(let i=0;i<pages.length;i++){btn.textContent='Processing page '+(i+1)+' of '+pages.length+'…';const im=await processImage(pages[i]);const jpg=await pdf.embedJpg(im.bytes);let w,h;const paper=$('paper').value;const orient=$('orientation').value;const margin=$('margins').checked?24:0;if(paper==='original'){w=im.w;h=im.h}else{const base=paper==='a4'?[595.28,841.89]:[612,792];let landscape=orient==='landscape'||(orient==='auto'&&im.w>im.h);if(orient==='portrait')landscape=false;w=landscape?base[1]:base[0];h=landscape?base[0]:base[1]}const page=pdf.addPage([w,h]);const maxW=Math.max(1,w-margin*2),maxH=Math.max(1,h-margin*2);const scale=Math.min(maxW/im.w,maxH/im.h);const dw=im.w*scale,dh=im.h*scale;page.drawImage(jpg,{x:(w-dw)/2,y:(h-dh)/2,width:dw,height:dh})}const bytes=await pdf.save();const blob=new Blob([bytes],{type:'application/pdf'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=safeName($('pdfName').value)+'.pdf';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);exports++;update();toast('PDF created and download started')}catch(e){console.error(e);toast('Could not create PDF: '+(e.message||'Unknown error'))}finally{btn.textContent='↓ Create & download PDF';btn.disabled=!pages.length}};
- update();
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const live = $('live'), lctx = live.getContext('2d');
+  const out = $('out'), octx = out.getContext('2d');
+
+  // Small offscreen canvas used only for fast luminance analysis
+  const DET_W = 200;
+  const det = document.createElement('canvas'), dctx = det.getContext('2d', { willReadFrequently: true });
+
+  const video = document.createElement('video');
+  video.playsInline = true; video.muted = true;
+
+  const state = { stream: null, box: null, smooth: null, frame: 0, lastSizeAt: 0, pages: [], timer: 0 };
+
+  /* ---------- UI helpers ---------- */
+  function badge(el, text, cls) { el.textContent = text; el.className = 'badge ' + (cls || ''); }
+  function toast(msg) {
+    const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
+    document.body.appendChild(t); setTimeout(() => t.remove(), 2200);
+  }
+  const quality = () => $('q').value / 100;
+  const kb = bytes => (bytes / 1024).toFixed(bytes < 10240 ? 1 : 0) + ' KB';
+
+  /* ---------- Camera ---------- */
+  async function startCamera() {
+    try {
+      state.stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false
+      });
+    } catch (e) {
+      badge($('detBadge'), 'Camera blocked', 'bad');
+      toast('Allow camera access (and use https or localhost).');
+      return;
+    }
+    video.srcObject = state.stream;
+    await video.play();
+    live.width = video.videoWidth; live.height = video.videoHeight;
+    $('livePh').classList.add('hidden');
+    $('camBtn').textContent = 'Stop camera';
+    $('capBtn').disabled = false;
+    badge($('detBadge'), 'Looking for a document…', 'warn');
+    requestAnimationFrame(loop);
+  }
+  function stopCamera() {
+    if (state.stream) state.stream.getTracks().forEach(t => t.stop());
+    state.stream = null; state.box = state.smooth = null;
+    lctx.clearRect(0, 0, live.width, live.height);
+    $('livePh').classList.remove('hidden');
+    $('camBtn').textContent = 'Start camera';
+    $('capBtn').disabled = true;
+    badge($('detBadge'), 'Camera off');
+  }
+
+  /* ---------- Edge detection (luminance threshold) ----------
+     Downscale the frame, mark pixels brighter than the threshold, then find
+     the bounding box of the bright region using row/column projections.
+     Rows/columns with too few bright pixels are ignored to reject noise. */
+  function detect() {
+    const h = Math.round(DET_W * video.videoHeight / video.videoWidth);
+    det.width = DET_W; det.height = h;
+    dctx.drawImage(video, 0, 0, DET_W, h);
+    const px = dctx.getImageData(0, 0, DET_W, h).data;
+    const thr = +$('thr').value;
+    const rows = new Uint16Array(h), cols = new Uint16Array(DET_W);
+    let bright = 0;
+    for (let y = 0; y < h; y++) for (let x = 0; x < DET_W; x++) {
+      const i = (y * DET_W + x) * 4;
+      const lum = 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2];
+      if (lum > thr) { rows[y]++; cols[x]++; bright++; }
+    }
+    const coverage = bright / (DET_W * h);
+    if (coverage < 0.06 || coverage > 0.97) return null;       // nothing, or whole frame is bright
+    const minRow = DET_W * 0.15, minCol = h * 0.15;
+    let y0 = 0, y1 = h - 1, x0 = 0, x1 = DET_W - 1;
+    while (y0 < h && rows[y0] < minRow) y0++;
+    while (y1 > y0 && rows[y1] < minRow) y1--;
+    while (x0 < DET_W && cols[x0] < minCol) x0++;
+    while (x1 > x0 && cols[x1] < minCol) x1--;
+    const bw = x1 - x0, bh = y1 - y0;
+    if (bw < DET_W * 0.2 || bh < h * 0.2) return null;
+    const s = video.videoWidth / DET_W;                         // back to full-resolution coordinates
+    return { x: x0 * s, y: y0 * s, w: (bw + 1) * s, h: (bh + 1) * s };
+  }
+
+  /* ---------- Render loop ---------- */
+  function loop() {
+    if (!state.stream) return;
+    lctx.drawImage(video, 0, 0, live.width, live.height);
+
+    if (state.frame++ % 3 === 0) {                              // analyse every 3rd frame
+      const b = detect();
+      if (b) {
+        // Smooth the box so the overlay doesn't jitter
+        const s = state.smooth;
+        state.smooth = s ? Object.fromEntries(Object.keys(b).map(k => [k, s[k] + (b[k] - s[k]) * 0.35])) : b;
+        state.box = state.smooth;
+        badge($('detBadge'), 'Document found', 'ok');
+      } else {
+        state.box = state.smooth = null;
+        badge($('detBadge'), 'No document found', 'warn');
+      }
+    }
+    if (state.box) drawOverlay(state.box);
+    renderResult();
+    requestAnimationFrame(loop);
+  }
+
+  // Darkened mask outside the box + green rectangle
+  function drawOverlay(b) {
+    lctx.save();
+    lctx.fillStyle = 'rgba(0,0,0,.55)';
+    lctx.beginPath();
+    lctx.rect(0, 0, live.width, live.height);
+    lctx.rect(b.x, b.y, b.w, b.h);
+    lctx.fill('evenodd');
+    lctx.strokeStyle = '#22c55e';
+    lctx.lineWidth = Math.max(3, live.width / 300);
+    lctx.strokeRect(b.x, b.y, b.w, b.h);
+    lctx.restore();
+  }
+
+  /* ---------- Crop + compress ---------- */
+  const MAX_SIDE = 1600;                                       // long-side cap keeps files small
+  function cropTo(canvas, ctx) {
+    const b = state.box;
+    if (!b) return false;
+    const k = Math.min(1, MAX_SIDE / Math.max(b.w, b.h));
+    canvas.width = Math.round(b.w * k); canvas.height = Math.round(b.h * k);
+    ctx.drawImage(video, b.x, b.y, b.w, b.h, 0, 0, canvas.width, canvas.height);
+    return true;
+  }
+  function renderResult() {
+    if (!cropTo(out, octx)) { $('outPh').classList.remove('hidden'); out.style.visibility = 'hidden'; badge($('sizeBadge'), '— KB'); return; }
+    $('outPh').classList.add('hidden'); out.style.visibility = 'visible';
+    const now = performance.now();
+    if (now - state.lastSizeAt > 400) {                        // throttle the (costly) encode
+      state.lastSizeAt = now;
+      const url = out.toDataURL('image/jpeg', quality());
+      badge($('sizeBadge'), '≈ ' + kb((url.length - 23) * 0.75), 'blue');   // base64 → bytes
+    }
+  }
+
+  /* ---------- Pages ---------- */
+  function capture() {
+    if (!state.box) { toast('No document detected. Adjust sensitivity or lighting.'); return; }
+    const c = document.createElement('canvas');
+    cropTo(c, c.getContext('2d'));
+    c.toBlob(async blob => {
+      const bytes = new Uint8Array(await blob.arrayBuffer());
+      state.pages.push({ bytes, w: c.width, h: c.height, url: URL.createObjectURL(blob) });
+      renderPages(); toast('Page ' + state.pages.length + ' added');
+    }, 'image/jpeg', quality());
+  }
+  function renderPages() {
+    const box = $('pages'); box.innerHTML = '';
+    if (!state.pages.length) box.innerHTML = '<span class="empty">Captured pages are listed here. Scan as many as you need.</span>';
+    state.pages.forEach((p, i) => {
+      const d = document.createElement('div'); d.className = 'thumb';
+      d.innerHTML = `<img alt="Page ${i + 1}" src="${p.url}"><div class="meta"><span>Page ${i + 1}</span><span>${kb(p.bytes.length)}</span></div>
+        <div class="acts"><button title="Move left" aria-label="Move page ${i + 1} left">◀</button><button title="Delete" aria-label="Delete page ${i + 1}">✕</button><button title="Move right" aria-label="Move page ${i + 1} right">▶</button></div>`;
+      const [l, x, r] = d.querySelectorAll('button');
+      l.onclick = () => move(i, -1); r.onclick = () => move(i, 1);
+      x.onclick = () => { URL.revokeObjectURL(p.url); state.pages.splice(i, 1); renderPages(); };
+      box.appendChild(d);
+    });
+    const total = state.pages.reduce((s, p) => s + p.bytes.length, 0);
+    badge($('countBadge'), state.pages.length + (state.pages.length === 1 ? ' page' : ' pages'), 'blue');
+    badge($('totalBadge'), kb(total));
+    $('pdfBtn').disabled = $('clearBtn').disabled = !state.pages.length;
+  }
+  function move(i, d) {
+    const j = i + d; if (j < 0 || j >= state.pages.length) return;
+    [state.pages[i], state.pages[j]] = [state.pages[j], state.pages[i]]; renderPages();
+  }
+
+  /* ---------- Minimal PDF writer (no libraries) ----------
+     Each page embeds its JPEG as-is (DCTDecode), so the PDF stays as small as the images.
+     Layout: 1 Catalog, 2 Pages, then per page: Image, Content stream, Page object. */
+  function buildPdf(pages) {
+    const enc = new TextEncoder(), parts = [], off = [];
+    let len = 0;
+    const push = d => { const b = typeof d === 'string' ? enc.encode(d) : d; parts.push(b); len += b.length; };
+    const begin = n => { off[n] = len; push(`${n} 0 obj\n`); };
+    const A4W = 595.28, A4H = 841.89, M = 18;
+
+    push('%PDF-1.4\n');
+    begin(1); push('<< /Type /Catalog /Pages 2 0 R >>\nendobj\n');
+    begin(2); push(`<< /Type /Pages /Count ${pages.length} /Kids [${pages.map((_, i) => `${5 + i * 3} 0 R`).join(' ')}] >>\nendobj\n`);
+
+    pages.forEach((p, i) => {
+      const img = 3 + i * 3, cnt = 4 + i * 3, pg = 5 + i * 3;
+      begin(img);
+      push(`<< /Type /XObject /Subtype /Image /Width ${p.w} /Height ${p.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${p.bytes.length} >>\nstream\n`);
+      push(p.bytes); push('\nendstream\nendobj\n');
+
+      // Fit the image inside an A4 page with margins, centred
+      const s = Math.min((A4W - 2 * M) / p.w, (A4H - 2 * M) / p.h), w = p.w * s, h = p.h * s;
+      const content = `q ${w.toFixed(2)} 0 0 ${h.toFixed(2)} ${((A4W - w) / 2).toFixed(2)} ${((A4H - h) / 2).toFixed(2)} cm /Im0 Do Q`;
+      begin(cnt); push(`<< /Length ${content.length} >>\nstream\n${content}\nendstream\nendobj\n`);
+      begin(pg); push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${A4W} ${A4H}] /Contents ${cnt} 0 R /Resources << /XObject << /Im0 ${img} 0 R >> >> >>\nendobj\n`);
+    });
+
+    const n = 3 + pages.length * 3, xref = len;
+    let x = `xref\n0 ${n}\n0000000000 65535 f \n`;
+    for (let i = 1; i < n; i++) x += String(off[i]).padStart(10, '0') + ' 00000 n \n';
+    push(x + `trailer\n<< /Size ${n} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`);
+    return new Blob(parts, { type: 'application/pdf' });
+  }
+
+  /* ---------- Ask name + save ---------- */
+  const dlg = $('nameDlg');
+  function askName() {
+    $('nameIn').value = 'scan-' + new Date().toISOString().slice(0, 10);
+    dlg.showModal(); $('nameIn').select();
+  }
+  async function savePdf(name) {
+    const clean = name.trim().replace(/[\\/:*?"<>|]+/g, '-').replace(/\.pdf$/i, '') || 'scan';
+    const fileName = clean + '.pdf', blob = buildPdf(state.pages);
+    // Preferred: let the user pick a folder/location (Chrome, Edge, Android)
+    if (window.showSaveFilePicker) {
+      try {
+        const h = await window.showSaveFilePicker({ suggestedName: fileName, types: [{ description: 'PDF', accept: { 'application/pdf': ['.pdf'] } }] });
+        const w = await h.createWritable(); await w.write(blob); await w.close();
+        toast('Saved ' + fileName + ' (' + kb(blob.size) + ')'); return;
+      } catch (e) { if (e.name === 'AbortError') return; }
+    }
+    // Fallback: normal browser download into the Downloads folder
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = fileName; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    toast('Saved ' + fileName + ' (' + kb(blob.size) + ')');
+  }
+
+  /* ---------- Wiring ---------- */
+  $('camBtn').onclick = () => state.stream ? stopCamera() : startCamera();
+  $('capBtn').onclick = capture;
+  $('pdfBtn').onclick = askName;
+  $('clearBtn').onclick = () => { if (confirm('Remove all scanned pages?')) { state.pages.forEach(p => URL.revokeObjectURL(p.url)); state.pages = []; renderPages(); } };
+  $('thr').oninput = e => $('thrV').textContent = e.target.value;
+  $('q').oninput = e => { $('qV').textContent = (e.target.value / 100).toFixed(2); state.lastSizeAt = 0; };   // size refreshes immediately
+  $('nameForm').onsubmit = () => savePdf($('nameIn').value);
+  $('nameCancel').onclick = () => dlg.close();
+  renderPages();
 })();
 </script>
 </body>
